@@ -1,0 +1,211 @@
+\documentclass[latter,12pt]{article}
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts,eucal,amsbsy,amsthm,amsopn,amssymb}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{geometry}
+\geometry{left=25mm,right=25mm,bindingoffset=0mm, top=20mm,bottom=20mm}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{parskip}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+}
+
+\renewcommand{\labelitemi}{$\blacksquare$}
+
+\title{\textbf{Projet Final}}
+
+\author{IFT-4102 et IFT-7025 : Approche Agent en Intelligence Artificielle}
+
+\date{À rendre avant le 26 Avril 2017 à 23h55}
+
+\begin{document}
+\maketitle
+
+
+
+\section*{Introduction}
+Dans la première partie du projet, nous avons couvert deux techniques d'apprentissage automatique, K-Plus Proches Voisins et la classification Naive Bayésienne. Dans cette deuxième partie du projet, nous allons voir deux autres techniques plus élaborées et plus performantes, les Arbres de Décision (Decision Trees) et les Réseaux de Neurones (Neural Networks).
+
+\section{Datasets}
+Comme pour la première partie du projet, vous allez tester votre code sur les datasets Iris, Monks et Congressional.
+
+\section{Méthodes à développer}
+Cette section décrit les méthodes (ou techniques) que vous aurez à implémenter pour mettre en œuvre et tester les datasets fournis.
+
+\noindent {\bf Notes :} 
+
+\begin{itemize}
+\item[$\rightarrow$] Partagez vos données sur deux ensembles, un ensemble d'entrainement et un ensemble de test. C'est à vous de choisir le ration train/test (70/30 est recommandé), sauf pour le dataset Monks, le train et test sont déjà séparés.
+
+\item[$\rightarrow$] Dans ce qui suit, la courbe d'apprentissage et la validation croisée se font seulement sur l'ensemble d'entrainement. L'ensemble test est utilisé seulement pour faire le test final de votre modèle.
+
+\item[$\rightarrow$] Assurez vous de garder les mêmes notations adoptée dans le projet partiel, \verb!train(...)!, \verb!predict(...)!, \verb!test(...)!. Vous pouvez rajouter autant de paramètres que vous voulez pour ces méthodes. Vous pouvez aussi rajouter d'autres méthodes au besoin, assurez vous juste que l'entrainement du modèle est fait dans la méthode \verb!train(...)! et le test dans la méthode \verb!test(...)!.
+\end{itemize}
+ 
+
+\subsection{Arbres de Décision}
+Pour cette méthode, vous allez mettre en œuvre un arbre de décision qui divise selon l'attribut qui offre le gain d'information maximal comme vu dans le cours et décrit dans \emph{la section 18.3} du manuel.
+
+\subsubsection{Implémentation}
+Implémentez cette technique (sans utiliser des bibliothèques de machine learning). \textbf{\textit{Les questions suivantes sont à faire pour chaque dataset.}}
+
+
+
+
+
+
+\subsubsection{Courbe d'apprentissage}
+La courbe d'apprentissage est souvent utile pour faire le \emph{sanity-check} de votre algorithme d'apprentissage, autrement dit, elle vous permet de vérifier si votre algorithme est entrain d'apprendre à partir des exemples que vous lui présenter et à quelle vitesse.
+\begin{itemize}
+\item Tracez la courbe d'apprentissage pour cet algorithme comme décrit dans le dernier paragraphe du \emph{chapitre 18.3.3} du manuel (La courbe va ressembler à la figure 18.7 du manuel). {\bf Commentez le résultat}.
+\end{itemize}
+
+
+\subsubsection{Entrainement et Test} 
+Entrainez votre modèle avec les données d'entrainement. Ensuite testez le avec les données de test, et:
+\begin{itemize}
+\item Donnez la matrice de confusion (pas la peine de donner la précision et le rappel, on sait comment les dériver de cette matrice)
+\item Donnez l'Accuracy.
+\end{itemize}
+	
+\vspace{5mm}
+
+{\bf Question optionnelle :} Mettre en œuvre l'élagage tel que décrit dans la \emph{section 18.3.5} du manuel. Refaire les questions 2 et 3. Ensuite comparer les résultats avec et sans élagage.
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+\subsection{Réseaux de Neurones Artificiels}
+Pour cette méthode, vous allez implémenter un réseau de neurones tel que décrit dans la \emph{section 18.7} du manuel. Assurez vous d'utiliser au moins une couche cachée parce qu'un réseau de neurones avec seulement deux couches (couche d'entrée et couche de sortie) n'est qu'un classificateur linéaire.
+
+
+\subsubsection{Implémentation}
+Implémentez cette technique (sans utiliser des bibliothèques de machine learning) et assurez vous que votre code prend en paramètre le nombre de couches du réseau et le nombre de neurones dans chaque couche. Vous en aurez besoin pour faire des tests par la suite.
+
+\subsubsection{Choix du nombre de neurones dans la couche cachée}
+\label{222}
+L'architecture d'un Réseaux de Neurones (noté {\bf RN}) joue un grand rôle dans la performance de l'algorithme, le nombre de neurones dans la couche cachée est l'une des plus importante caractéristiques. Il existe plusieurs façons empiriques pour choisir ce nombre. Pour votre cas vous allez utiliser la validation croisée (k-fold cross validation) pour choisir le nombre de neurones (la dimension) pour chaque dataset. Voici brièvement comment procéder :
+
+\begin{itemize}
+\item [$\rightarrow$] Vous divisez vos données d'entraînement en $k$ parties de taille égale (appelées folds). Choisissez $k$ entre $5$ et $10$.
+
+\item[$\rightarrow$] Vous choisissez un nombre approprié de dimensions (nombre de neurones) candidates pour votre couche cachée. Choisissez $[4,5,6,7,8,9,...,50]$. (vous pouvez tester pour d'autres nombres)
+
+\item[$\rightarrow$] Pour chacune de ces dimensions candidates, entrainez le \textbf{RN} $k$ fois, en utilisant $k-1$ parties comme données d'entraînement et le $k^{eme}$ comme données de test. Notez l'erreur moyenne pour chacune des dimensions.
+
+\item[$\rightarrow$] Vous choisissez le nombre de neurones dont l'erreur moyenne de test est la plus faible.
+
+\item[$\rightarrow$] Faites ça pour chaque dataset, et notez la meilleure architecture pour chacun.
+\end{itemize}
+
+\textbf{Questions :}
+
+\begin{enumerate}
+\item Pour chaque dataset, tracez la courbe [Erreur Moyenne (sur l'axe des y)/Nombre de neurones dans la couche cachée (sur l'axe des x)]. Commentez chacun des tracés.
+\item Quelle architecture choisissez-vous pour chaque dataset ?
+\end{enumerate}
+
+\textbf{Note :} notez bien que vous n'avez pas touché aux données de test jusqu'ici, vous avez sélectionné la meilleure architecture à l'aide des données d'entrainement et la validation croisée seulement.
+
+\subsubsection{Choix du nombre de couches cachées}
+Dans un Réseau de Neurones nous pouvons avoir autant de couches cachées que l'on veut. Pour comprendre l'effet de la profondeur d'un \textbf{RN}, vous allez comparez cinq (ou plus si vous voulez) architectures de \textbf{RNs} : un avec $3$ couches (comme celui de la question précédente) soit \verb!RN-3C!, un avec $4$ couches (une couche d'entrée, deux couches cachées et une couche de sortie) soit \verb!RN-4C!, ainsi de suite, jusqu'à \verb!RN-7C!. (Pour chaque dataset, gardez le même nombre de neurones dans les couche cachée que vous avez trouvé dans la questions précédente).
+
+Pour chaque dataset :
+\begin{enumerate}
+\item Tracez dans la même figure la courbe d'apprentissage des cinq \textbf{RNs}.
+	\begin{itemize}
+	\item Commentez les résultats
+	\item Quel modèle choisiriez-vous pour chacun des dataset ?
+	\item Googlez le terme \textit{Vanishing Gradient}.
+	\end{itemize}
+
+\item Faites la validation croisée comme dans \ref{222} pour choisir le modèle approprié pour chaque dataset.
+\end{enumerate}
+
+
+\subsubsection{Initialisation des poids du Réseau de Neurones}
+L'initialisation de tous les poids du Réseau de Neurones à la même valeur (zéro ou autre) n'est pas une bonne pratique. Il existe plusieurs techniques d'initialisation dans la littérature, faites alors une recherche rapide sur ces techniques et choisissez en une qui vous convient.
+
+1 - Expliquez brièvement la techniques que vous avez choisie.
+
+Pour comprendre l'effet de l'initialisation des poids d'un \textbf{RN} vous allez comparer deux \textbf{RNs} pour chaque dataset. Appelons votre \textbf{RN} avec l'initialisation de poids à zéro \verb!RN-ZERO! et celui avec l'initialisation que vous avez choisie \verb!RN-NON-ZERO!.
+
+\textbf{Question :} pour chaque dataset
+\begin{itemize}
+\item Tracez dans la même figure la courbe d'apprentissage de RN-ZERO et celle de RN-NON-ZERO. Commentez le résultat.
+\end{itemize}
+
+\subsubsection{Entrainement et Test}
+Maintenant que vous avez défini, pour chaque dataset, une architecture appropriée, et une technique d'initialisation des poids, entrainez votre modèle avec les données d'entrainement et testez le avec les données de test, et :
+\begin{itemize}
+\item Donnez la matrice de confusion (pas la peine de donner la précision et le rappel)
+\item Donnez l'Accuracy.
+\end{itemize}
+
+\vspace{3mm}
+\textbf{Note importante : } l'entrainement d'un Réseau de Neurones peut nécessiter plusieurs époques d'entrainement. Cela veut dire que vous pouvez entrainer le modèle plusieurs fois sans ré-initialisation avec le même ensemble d'entrainement, en mélangeant les exemples dans chaque époque. Mais cela peut induire un sur-apprentissage. Pour palier à ça, vous pouvez utiliser la validation croisée pour choisir le nombre d'époques approprié pour chacun des réseaux.
+
+
+\subsection{Comparaison entre Réseaux de Neurones et Arbres de Décision}
+\label{2.3}
+Comparez dans un tableau, les performances des Réseaux de Neurones contre les Arbres de Décision selon :
+\begin{itemize}
+\item Accuracy ou Taux d'erreur sur l'ensemble de test
+\item Temps de prédiction d'un seul exemple
+\item Temps d'apprentissage du modèle
+\end{itemize} 
+
+Dans une conclusion, faites un récapitulatifs de ce que vous appris dans ce projet.
+
+
+\section{Directives}
+Commencez par voir et examiner le code (dans le dossier \verb!Code!) qui vous est donné en attaché. Implémenter les deux techniques en suivant le squelette des classes tel qu'on vous l'a indiqué dans les fichier python en attaché.
+\begin{itemize}
+\item Utilisez le fichier \verb!load_datasets.py!, que vous avez développé dans la première partie du projet pour lire les datasets.
+
+\item Lisez bien le fichier \verb!classifieur.py! (nous l'avons un peu modifié par rapport à la première partie du projet) pour vous aider à implémenter les deux techniques d'apprentissage machine, nommez le fichier selon la technique : \verb!NeuralNet.py! pour le modèle \emph{Réseau de Neurones} et \verb!DecisionTree.py! pour le modèles des \emph{Arbres de Décision}.
+
+\item Compléter le fichier \verb!main.py! pour lancer les expérimentations, l'entraînement et le test de vos techniques, c'est le fichier principal pour l'exécution. (c'est le même que le fichier \verb!entrainer_tester.py! de la première partie)
+\end{itemize}
+
+
+\section{Livrables}
+Le travail doit être rendu dans un dossier compressé (.zip), contenant :
+\begin{itemize}
+\item README [Optionnel]: un fichier texte contenant une brève description des classes, la répartition des tâches de travail entre les membres d'équipe, et une explication des difficultés rencontrées dans ce travail.
+
+S'il y a des erreurs ou des bogues dans votre code, mentionnez les, et expliquez les démarches que vous avez prises pour déboguer le code (cela vous permettra d'avoir des points même si votre code n'a pas fonctionné)
+
+\item Tout le code que vous avez écrit doit être remis dans le dossier \verb!Code!, vous avez le droit de modifier le code que nous vous avons fournis, mais les noms des méthodes (tels que : \verb!train(...)!, \verb!predict(...)!, \verb!test(...)!, ...etc) doivent rester inchangés
+
+\item Un document PDF contenant : 
+	\begin{itemize}
+	\item Les réponses aux questions
+	\item Les discussions des résultats obtenus
+	\item Une comparaison entre les deux techniques en terme de performances tel que demandé dans la sous-section \ref{2.3}
+	\end{itemize}
+\end{itemize}
+
+
+
+
+
+
+\end{document}

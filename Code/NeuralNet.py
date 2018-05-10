@@ -10,7 +10,7 @@ je vais avoir besoin de tester les methodes train, predict et test de votre code
 
 import numpy as np
 import matplotlib.pyplot as plt
-
+import timeit
 # le nom de votre classe
 # NeuralNet pour le modele Reseaux de Neurones
 # DecisionTree le modele des arbres de decision
@@ -23,7 +23,10 @@ class NeuralNet: #nom de la class a changer
         Vous pouvez passer d'autre parametres au besoin,
         c'est a vous d'utiliser vos propres notations
         """
-
+        self.w = []
+        self.epoch = 20000
+        self.best_dimension = 0
+        self.best_layers = 0
 
     def train(self, train, train_labels): #vous pouvez rajouter d'autres attribus au besoin
         """
@@ -42,28 +45,33 @@ class NeuralNet: #nom de la class a changer
         k = 6
         dimensions = [5, 10, 20, 30, 40, 50]
         hidden_layers = 1
-        # dimension = self.cross_validation(train, train_labels, k, dimensions, hidden_layers)
-        # print "dimension to choose : ", dimension
+        self.best_dimension = self.cross_validation(train, train_labels, k, dimensions, hidden_layers)
+        print "dimension to choose : ", self.best_dimension
 
+        self.weigths = []
         k = 5
-        dimensions = 20
         hidden_layers = [1, 2, 3, 4, 5]
-        best_nb_hidden_layer = self.cross_validation(train, train_labels, k, dimensions, hidden_layers)
+        self.best_layers = self.cross_validation(train, train_labels, k, self.best_dimension, hidden_layers)
+        print "best number of hidden layers : ", self.best_layers
 
-        print "best number of hidden layers : ", best_nb_hidden_layer
+        self.weigths = []
+        RN_NON_ZERO = (self.neural_network(train, train_labels,
+            self.best_dimension, self.best_layers, 0.1, test=True))
+        test1 = [round(x) for x in RN_NON_ZERO]
+        confusion_matrix(test1, train_labels)
 
-        # self.neural_network(train, train_labels, 4, 1, 0.5)
-        X = np.array([[0, 0, 1],
-                    [0, 1, 1],
-                    [1, 0, 1],
-                    [1, 1, 1]])
+        self.weigths = []
+        RN_ZERO = (self.neural_network(train, train_labels,
+            self.best_dimension, self.best_layers, 0.1, random=False, test=True))
+        test2 = [round(x) for x in RN_ZERO]
+        confusion_matrix(test2, train_labels)
 
-        y = np.array([[0],
-                      [1],
-                      [1],
-                      [0]])
-
-        # print self.neural_network(X, y , 4, 1, 0.5)
+        start = timeit.default_timer()
+        result = self.neural_network(train, train_labels, self.best_dimension, self.best_layers, 0.1)
+        prediction = [round(x) for x in result]
+        confusion_matrix(prediction, train_labels)
+        stop = timeit.default_timer()
+        print "execution time : ",stop - start
 
     def predict(self, exemple, label):
         """
@@ -94,20 +102,54 @@ class NeuralNet: #nom de la class a changer
         Bien entendu ces tests doivent etre faits sur les donnees de test seulement
 
         """
+        # predictions = []
+        # start = timeit.default_timer()
+        # for i in range(0, len(test)):
+        #     prediction = self.predict(test[i], test_labels[i])
+        #     predictions.append(prediction)
+        # confusion_matrix(predictions, test_labels)
+        # stop = timeit.default_timer()
+        # print "execution time : ",stop - start
 
-    def neural_network(self, train, labels, nb_neuronnes, nb_hidden_layer, learning_rate):
+        # print "test labels : ", test_labels
+        predictions = []
+        start = timeit.default_timer()
+        self.epoch = 1
+        # test_result = (self.neural_network(test, test_labels,
+        #     self.best_dimension, self.best_layers, 0.1, random=False))
+        test_result = (self.neural_network(test, test_labels, 30, 3, 0.1))
+        prediction = [round(x) for x in test_result]
+        confusion_matrix(prediction, test_labels)
+        stop = timeit.default_timer()
+        print "execution time : ",stop - start
+
+    def neural_network(self, train, labels, nb_neuronnes, nb_hidden_layer, learning_rate, random=True, test=False):
+
         weights = []
+        if not test:
+            weights = self.w
+
         np.random.seed(1)
-        weight_input = 2 * np.random.random((len(train[0]), nb_neuronnes)) - 1
-        weight_output = 2 * np.random.random((nb_neuronnes, 1)) - 1
+        random_const_1 = 2
+        random_const_2 = 1
+        if not random:
+            random_const_1 = 0
+            random_const_2 = 0
+
+        #Poid entre -1 et 1
+        weight_input = random_const_1 * np.random.random((len(train[0]), nb_neuronnes)) \
+            - random_const_2
+        weight_output = random_const_1 * np.random.random((nb_neuronnes, 1)) \
+            - random_const_2
         weights.append(weight_input)
 
         for i in range(nb_hidden_layer - 1):
-            weights.append(2 * np.random.random((nb_neuronnes, nb_neuronnes)) - 1)
+            weights.append(random_const_1 * np.random.random((nb_neuronnes, nb_neuronnes)) \
+                - random_const_2)
 
         weights.append(weight_output)
 
-        for k in xrange(20000):
+        for k in xrange(self.epoch):
             layers = []
             deltas = []
             i = 0
@@ -122,7 +164,6 @@ class NeuralNet: #nom de la class a changer
             error = labels - layers[-1]
             #On ajoute les deltas dans l'ordre inverse
             deltas.append(error * self.sigmoid(layers[-1], deriv=True))
-
 
             #len(weights) - 1 pcq on a fait une operation a l'exterieur de la boucle
             for j in range(len(weights) - 1, 0, -1):
@@ -146,7 +187,7 @@ class NeuralNet: #nom de la class a changer
 
     #Dimensions et hidden_layers sont des liste de k element pour que le code soit reutilisable
     def cross_validation(self, train, labels, k, dimensions, hidden_layers):
-        best_dimension = 0
+        best_value = 0
         best_prediction = 0
         n = len(train)
         # Pour dessiner notre graphique
@@ -154,35 +195,34 @@ class NeuralNet: #nom de la class a changer
         y = []
         for i in range(0, k):
             split_train, split_test = fold_split(train, i * (n / k), (i + 1) * (n / k))
-            #Jai tu vraiment besoin de sa
             split_train_labels, split_test_labels = fold_split(labels, i * (n / k), (i + 1) * (n / k))
 
-            x_, y_, best_prediction = self.cross_validation_train(split_train, split_train_labels,
-                dimensions, hidden_layers, best_prediction, best_dimension, i)
+            x_, y_ = self.cross_validation_train(split_train, split_train_labels,
+             split_test_labels, dimensions, hidden_layers, i)
+            if (y_ > best_prediction):
+                best_prediction = y_
+                best_value = x_
             x.append(x_)
             y.append(y_)
         plt.plot(x, y)
-        plt.show()
-        return best_dimension
+        # plt.show()
+        return best_value
 
-    def cross_validation_train(self, split_train, split_train_labels,
-     dimensions, hidden_layers, best_prediction, best, i):
+    def cross_validation_train(self, split_train, split_train_labels, split_test_labels,
+     dimensions, hidden_layers, i):
         #Si on a une liste comme dimensions sa veut dire que on check pour la meilleur dimension
         #Sinon on cherche le meilleur layout
+        self.weigths = []
         if type(dimensions) is list :
-            result = self.neural_network(split_train, split_train_labels, dimensions[i], hidden_layers, 0.1)
+            result = self.neural_network(split_train, split_train_labels,
+             dimensions[i], hidden_layers, 0.1, test=True)
             predict = prediction(result, split_train_labels)
-            if (predict > best_prediction):
-                best_prediction = predict
-                best = dimensions[i]
-            return dimensions[i], predict, best
+            return dimensions[i], predict
         else:
-            result = self.neural_network(split_train, split_train_labels, dimensions, hidden_layers[i], 0.1)
+            result= self.neural_network(split_train, split_train_labels,
+             dimensions, hidden_layers[i], 0.1, test=True)
             predict = prediction(result, split_train_labels)
-            if (predict > best_prediction):
-                best_prediction = predict
-                best = hidden_layers[i]
-            return hidden_layers[i], predict, best
+            return hidden_layers[i], predict
 
 def fold_split(data, start, end):
     start = int(start)
@@ -195,11 +235,31 @@ def fold_split(data, start, end):
 def prediction(predict, labels):
     right = 0
     for i in range(0, len(labels)):
-        # print labels[i][0], " vs ", round(predict[i][0], 2), "vs ", predict[i][0]
-        # Cest ordinaire faire sa je pense
         if labels[i][0] == round(predict[i][0], 2):
             right += 1
     return (float(right)/float(len(labels)))
+
+def confusion_matrix(predictions, test_labels):
+    labels = set(test_label[0] for test_label in test_labels)
+
+    predictions = np.array(predictions).astype(int)
+    test_list = np.hstack(test_labels).astype(int)
+    matrix = np.zeros((len(labels), len(labels)))
+    for a, p in zip(test_list, predictions):
+        matrix[a][p] += 1
+
+    false_positive = matrix.sum(axis=0) - np.diag(matrix)
+    false_negative = matrix.sum(axis=1) - np.diag(matrix)
+    true_positive = np.diag(matrix)
+    true_negative = matrix.sum() - (false_negative + false_positive + true_positive)
+
+    accuracy = (true_negative + true_positive) / (true_negative + true_positive + false_negative + false_positive)
+    print "accuracy: ", accuracy
+
+    print "confusion matrix : "
+    print matrix
+
+    return matrix
 
     # Vous pouvez rajouter d'autres methodes et fonctions,
     # il suffit juste de les commenter.

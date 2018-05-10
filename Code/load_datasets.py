@@ -201,15 +201,15 @@ def load_monks_dataset(numero_dataset):
         test_labels_list.append([words.pop(0)])
         test_list.append(words)
 
-    # train = np.array(train_list).astype(np.float)
-    # train_labels = np.array(train_labels_list).astype(float)
-    # test = np.array(test_list).astype(np.float)
-    # test_labels = np.array(test_labels_list).astype(float)
+    train = np.array(train_list).astype(np.float)
+    train_labels = np.array(train_labels_list).astype(float)
+    test = np.array(test_list).astype(np.float)
+    test_labels = np.array(test_labels_list).astype(float)
 
-    train = np.array(train_list)
-    train_labels = np.array(train_labels_list)
-    test = np.array(test_list)
-    test_labels = np.array(test_labels_list)
+    # train = np.array(train_list)
+    # train_labels = np.array(train_labels_list)
+    # test = np.array(test_list)
+    # test_labels = np.array(test_labels_list)
 
     # La fonction doit retourner 4 matrices (ou vecteurs) de type Numpy.
     return (train, train_labels, test, test_labels)

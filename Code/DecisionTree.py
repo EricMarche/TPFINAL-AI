@@ -9,6 +9,7 @@ je vais avoir besoin de tester les methodes train, predict et test de votre code
 """
 
 import numpy as np
+from matplotlib import pyplot as plt
 #Import pour calculer le temps d execution de test
 import timeit
 from collections import defaultdict, Counter
@@ -37,10 +38,6 @@ class DecisionTree:
         ------------
 
         """
-        # print "len(train) : ", len(train)
-        # print "len(train_labels)", len(train_labels)
-        # print train
-        # print train_labels
         self.dataset = np.concatenate((train, train_labels), axis=1)
 
         #Notre liste d'attribut sera l'index des attributs
@@ -61,23 +58,17 @@ class DecisionTree:
         """
         prediction = None
         node = self.tree
-        # print "len exemple : ", len(exemple)
-        # print "exemple : "
-        # print exemple
         while prediction is None:
             if node.is_leaf():
                 prediction = node.label
-                # print "prediction : ", prediction
             else:
                 value = exemple[node.attr]
                 if value in node:
-                # print "index : ", exemple[node.attr]
                     node = node[value]
                 #Sa se peut quil est une erreur et on peut pas determiner la prediction
                 #Donc on va mettre la prediction a -1 ou 0 je sais pas
                 else :
                     prediction = 0.
-            # print "node : ", node
         return prediction
 
     def test(self, test, test_labels):
@@ -108,7 +99,7 @@ class DecisionTree:
         stop = timeit.default_timer()
         print "execution time : ",stop - start
 
-    # https://gist.githubusercontent.com/cmdelatorre/fd9ee43167f5cc1da130/raw/09a0c72267e3166d549d2dd8c29daca0e393c5bc/id3.py
+
     def decision_tree(self, data, attrs):
         if not attrs:
             result = same_class(data)
@@ -122,13 +113,10 @@ class DecisionTree:
                 root_node = Leaf(classes[0])
             else:
                 best_attr = self.best_attribute(data, attrs, classes)
-                # print "best_attr : ", best_attr
-                # Create the node to return and create the sub-tree.
                 root_node = Node(best_attr)
                 best_attr_values = {row[best_attr] for row in data}
                 for value in best_attr_values:
                     rows = [row for row in data if row[best_attr] == value]
-                    # Recursively, create a child node.
                     child = self.decision_tree(rows, attrs)
                     root_node[value] = child
         return root_node
@@ -146,14 +134,10 @@ class DecisionTree:
         partition = defaultdict(list)
         for row in data:
             partition[row[attr]].append(row)
-        # print "partition : "
-        # print partition
         attr_entropy = 0.0
         for partition in partition.values():
             #fait une liste avec les classes
             sub_classes = [s[-1] for s in partition]
-            # print "test : "
-            # print sub_classes
             attr_entropy += (len(partition) / nb_data) * entropy(sub_classes)
 
         return entropy(classes) - attr_entropy
@@ -165,23 +149,33 @@ class DecisionTree:
         y = []
         predictions = []
         for i in range(1, k):
+            print "test : ", self.tree
+            # Si on veut un des split_test qui change
+            # split_train, split_test = fold_split(train, i * (n / k), (i + 1) * (n / k))
+            # split_train_labels, split_test_labels = fold_split(train_labels, i * (n / k), (i + 1) * (n / k))
 
-            split_train, split_test = fold_split(train, i * (n / k), (i + 1) * (n / k))
-            split_train_labels, split_test_labels = fold_split(train_labels, i * (n / k), (i + 1) * (n / k))
+            split_train, split_test = fold_split(train, (n / k), (i + 1) * (n / k))
+            split_train_labels, split_test_labels = fold_split(train_labels, (n / k), (i + 1) * (n / k))
             print "split_train len : ", len(split_train), " split_test len  : ", len(split_test)
-            print "s_train_l : ", len(split_train_labels), " s_test_l : ", len(split_test_labels)
+
             self.train(split_train, split_train_labels)
-            for i in range(0, len(split_test)):
-                prediction = self.predict(split_test[i], split_test_labels[i])
+            for i in range(0, len(split_train)):
+                prediction = self.predict(split_train[i], split_train_labels[i])
                 predictions.append(prediction)
-            accuracy = total_accuracy(predictions, split_test_labels)
+            accuracy = total_accuracy(predictions, split_train_labels)
+            x.append(len(split_train))
+            y.append(accuracy)
             self.tree = None
             self.dataset = []
 
+        plt.plot(x, y)
+        plt.xlabel('Dataset size')
+        plt.ylabel('Accuracy')
+        plt.title('Model response to dataset size')
+        plt.show()
+
 def confusion_matrix(predictions, test_labels):
     labels = set(test_label[0] for test_label in test_labels)
-    # print "nb_labels : ", len(labels)
-    # print "predictions : ", predictions
 
     predictions = np.array(predictions).astype(int)
     test_list = np.hstack(test_labels).astype(int)
@@ -202,19 +196,8 @@ def confusion_matrix(predictions, test_labels):
 
     return matrix
 
-    # precision = true_positive / (true_positive + false_positive)
-    # print "Precision : ", precision
-    #
-    # recall = true_positive / (true_positive + false_negative)
-    # print "Recall : ", recall
-
 def total_accuracy(predictions, test_labels):
-    # print predictions
     labels = set(test_label[0] for test_label in test_labels)
-    # print "nb_labels : ", len(labels)
-    # print "predictions : ", predictions
-    # print test_labels
-
 
     predictions = np.array(predictions).astype(int)
     test_list = np.hstack(test_labels).astype(int)
@@ -222,7 +205,7 @@ def total_accuracy(predictions, test_labels):
     for a, p in zip(test_list, predictions):
         matrix[a][p] += 1
 
-    accuracy = sum(np.diag(matrix)) / float(len(labels))
+    accuracy = sum(np.diag(matrix)) / float(len(test_labels))
     print "accuracy: ", accuracy
     return accuracy
 
@@ -236,15 +219,8 @@ def same_class(data):
 def entropy(data):
     nb_data = float(len(data))
     counter = Counter(data)
-    # print counter
-    # for c in counter:
-        # print -1.0*(counter[c] / nb_data)*np.log2(counter[c] / nb_data)
     sum_entropy = sum(-1.0*(counter[c] / nb_data)*np.log2(counter[c] / nb_data) for c in counter)
-    # print "sum : ", sum_entropy
     return sum_entropy
-
-# def classification_error(p):
-#     return 1 - np.max([p, 1 - p])
 
 def label_count(data):
     counts = {}
@@ -255,13 +231,12 @@ def label_count(data):
         counts[label] += 1
     return counts
 
-
 def fold_split(data, start, end):
     start = int(start)
     end = int(end)
 
-    train = data[:start]
-    test = data[start:end]
+    train = data[start:end]
+    test = data[:start]
     return train, test
 
 class Node(dict):

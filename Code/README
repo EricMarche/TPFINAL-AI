@@ -1,0 +1,3 @@
+Dans le main j'ai laissé quelque ligne en commentaire comme les learning curve et le test des RN
+Il est possible de d'enlever le commentaite de plt.show() afin d'avoir les graphique pour les RN
+
